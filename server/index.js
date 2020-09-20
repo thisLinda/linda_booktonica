@@ -27,7 +27,12 @@ api.use(bodyParser.json());
  * by removing
  */
 const bodyDebugMiddleware = require('./src/body-debug-middleware');
+const { Pool } = require('pg');
 api.use(bodyDebugMiddleware);
+
+new Pool({
+  connectionString:process.env.DATABASE_URL || 'postgres://localhost:5432/booktonica.sql'
+});
 
 /**
  * Creates a new database object.
@@ -74,3 +79,12 @@ db.sanityCheck().then(() => {
     `);
   });
 });
+
+if (process.env.NODE_ENV === 'production') {
+  // Serve any static files
+  app.use(express.static(path.join(__dirname, '../client/build')));
+  // Handle React routing, return all requests to React app
+  app.get('*', function (req, res) {
+    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+  });
+}
